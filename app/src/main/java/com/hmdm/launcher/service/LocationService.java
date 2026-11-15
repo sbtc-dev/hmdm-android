@@ -64,6 +64,11 @@ public class LocationService extends Service {
 
     private static final int LOCATION_UPDATE_INTERVAL = 60000;
 
+    private static String formatLogLocation(String source, Location location) {
+        String message = source + " location update: lat=" + location.getLatitude() + ", lon=" + location.getLongitude();
+        return location.hasAccuracy() ? message + ", acc=" + location.getAccuracy() : message;
+    }
+
     // Use different location listeners for GPS and Network
     // Not sure what happens if we share the same listener for both providers
     private LocationListener gpsLocationListener = new LocationListener() {
@@ -71,8 +76,7 @@ public class LocationService extends Service {
         public void onLocationChanged(Location location) {
             // Do nothing here: we use getLastKnownLocation() to determine the location!
             //Toast.makeText(LocationService.this, "Location updated from GPS", Toast.LENGTH_SHORT).show();
-            RemoteLogger.log(LocationService.this, Const.LOG_VERBOSE, "GPS location update: lat="
-                    + location.getLatitude() + ", lon=" + location.getLongitude());
+            RemoteLogger.log(LocationService.this, Const.LOG_VERBOSE, formatLogLocation("GPS", location));
             ProUtils.processLocation(LocationService.this, location, LocationManager.GPS_PROVIDER);
         }
 
@@ -93,8 +97,7 @@ public class LocationService extends Service {
         public void onLocationChanged(Location location) {
             // Do nothing here: we use getLastKnownLocation() to determine the location!
             //Toast.makeText(LocationService.this, "Location updated from Network", Toast.LENGTH_SHORT).show();
-            RemoteLogger.log(LocationService.this, Const.LOG_VERBOSE, "Network location update: lat="
-                    + location.getLatitude() + ", lon=" + location.getLongitude());
+            RemoteLogger.log(LocationService.this, Const.LOG_VERBOSE, formatLogLocation("Network", location));
             ProUtils.processLocation(LocationService.this, location, LocationManager.NETWORK_PROVIDER);
         }
 
@@ -117,7 +120,7 @@ public class LocationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        locationManager = (LocationManager)this.getSystemService(LOCATION_SERVICE);
+        locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             gnssStatusCallback = new GnssStatus.Callback() {
@@ -145,13 +148,13 @@ public class LocationService extends Service {
             notificationManager.createNotificationChannel(channel);
             builder = new NotificationCompat.Builder(this, CHANNEL_ID);
         } else {
-            builder = new NotificationCompat.Builder( this );
+            builder = new NotificationCompat.Builder(this);
         }
         Notification notification = builder
                 .setContentTitle(ProUtils.getAppName(this))
                 .setTicker(ProUtils.getAppName(this))
-                .setContentText( getString( R.string.location_service_text ) )
-                .setSmallIcon( R.drawable.ic_location_service ).build();
+                .setContentText(getString(R.string.location_service_text))
+                .setSmallIcon(R.drawable.ic_location_service).build();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
