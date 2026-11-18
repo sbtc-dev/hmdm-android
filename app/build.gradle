@@ -1,3 +1,14 @@
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+def signingValue = { String envName, String propertyName ->
+    System.getenv(envName) ?: keystoreProperties.getProperty(propertyName)
+}
+
 /*
  * Headwind MDM: Open Source Android MDM Software
  * https://h-mdm.com
@@ -31,6 +42,16 @@ repositories {
 
 android {
     compileSdkVersion 34
+
+    signingConfigs {
+        release {
+            storeFile file(signingValue('KEYSTORE_FILE', 'storeFile'))
+            storePassword signingValue('KEYSTORE_PASSWORD', 'storePassword')
+            keyAlias signingValue('KEY_ALIAS', 'keyAlias')
+            keyPassword signingValue('KEY_PASSWORD', 'keyPassword')
+        }
+    }
+
     defaultConfig {
         applicationId "com.hmdm.launcher"
         //minSdkVersion 16
@@ -119,6 +140,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             debuggable false
+            signingConfig signingConfigs.release
         }
         debug {
             minifyEnabled false
@@ -149,7 +171,13 @@ android {
     flavorDimensions "all"
 
     productFlavors {
-        opensource { }
+        sbtc { }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "hmdm-${variant.versionName}-sbtc.apk"
+        }
     }
 }
 
