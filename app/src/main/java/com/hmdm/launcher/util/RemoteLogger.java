@@ -21,6 +21,8 @@ package com.hmdm.launcher.util;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.location.Location;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.hmdm.launcher.Const;
@@ -69,6 +71,27 @@ public class RemoteLogger {
         item.setPackageId(context.getPackageName());
         item.setMessage(message);
         postLog(context, item);
+    }
+
+    public static void log(Context context, int level, Location location) {
+        String provider = location.getProvider() != null ? location.getProvider() : "unknown";
+        int bootCount = Settings.Global.getInt(context.getContentResolver(), Settings.Global.BOOT_COUNT, -1);
+
+        StringBuilder message = new StringBuilder(provider)
+                .append(" location update: lat=").append(location.getLatitude())
+                .append(", lon=").append(location.getLongitude())
+                .append(", elr=").append(location.getElapsedRealtimeNanos())
+                .append(", btc=").append(bootCount);
+
+        if (location.hasAccuracy()) message.append(", acc=").append(location.getAccuracy());
+        if (location.hasSpeed()) message.append(", spd=").append(location.getSpeed());
+        if (location.hasSpeedAccuracy())
+            message.append(", spa=").append(location.getSpeedAccuracyMetersPerSecond());
+        if (location.hasBearing()) message.append(", brg=").append(location.getBearing());
+        if (location.hasBearingAccuracy())
+            message.append(", bra=").append(location.getBearingAccuracyDegrees());
+
+        log(context, level, message.toString());
     }
 
     public static void postLog(Context context, RemoteLogItem item) {

@@ -64,11 +64,6 @@ public class LocationService extends Service {
 
     private static final int LOCATION_UPDATE_INTERVAL = 60000;
 
-    private static String formatLogLocation(String source, Location location) {
-        String message = source + " location update: lat=" + location.getLatitude() + ", lon=" + location.getLongitude();
-        return location.hasAccuracy() ? message + ", acc=" + location.getAccuracy() : message;
-    }
-
     // Use different location listeners for GPS and Network
     // Not sure what happens if we share the same listener for both providers
     private LocationListener gpsLocationListener = new LocationListener() {
@@ -76,7 +71,7 @@ public class LocationService extends Service {
         public void onLocationChanged(Location location) {
             // Do nothing here: we use getLastKnownLocation() to determine the location!
             //Toast.makeText(LocationService.this, "Location updated from GPS", Toast.LENGTH_SHORT).show();
-            RemoteLogger.log(LocationService.this, Const.LOG_VERBOSE, formatLogLocation("GPS", location));
+            RemoteLogger.log(LocationService.this, Const.LOG_VERBOSE, location);
             ProUtils.processLocation(LocationService.this, location, LocationManager.GPS_PROVIDER);
         }
 
@@ -97,7 +92,7 @@ public class LocationService extends Service {
         public void onLocationChanged(Location location) {
             // Do nothing here: we use getLastKnownLocation() to determine the location!
             //Toast.makeText(LocationService.this, "Location updated from Network", Toast.LENGTH_SHORT).show();
-            RemoteLogger.log(LocationService.this, Const.LOG_VERBOSE, formatLogLocation("Network", location));
+            RemoteLogger.log(LocationService.this, Const.LOG_VERBOSE, location);
             ProUtils.processLocation(LocationService.this, location, LocationManager.NETWORK_PROVIDER);
         }
 
